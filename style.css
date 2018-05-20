@@ -1,0 +1,22 @@
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body {
+  background: #f4f4f4;
+  font-size: 16px;
+  font-family: Helvetica Neue, Helvetica, Arial;
+  margin: 0;
+}
+
+.draw-zone {
+  background: #FFF;
+  box-shadow: 0px 10px 10px #AAA;
+  height: 210mm;
+  margin: 30px auto;
+  width: 297mm;
+}
