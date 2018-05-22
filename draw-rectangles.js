@@ -31,11 +31,10 @@ class Rect {
   }
 
   draw(posX, posY) {
-    let height = Math.abs(posY - this.originY);
-    let width = Math.abs(posX - this.originX);
-
-    this.elt.style.height = height + "px";
-    this.elt.style.width = width + "px";
+    this.elt.style.top = Math.min(posY, this.originY) + "px";
+    this.elt.style.left = Math.min(posX, this.originX) + "px";
+    this.elt.style.height = Math.abs(posY - this.originY) + "px";
+    this.elt.style.width = Math.abs(posX - this.originX) + "px";
   }
 
   rotate() {
