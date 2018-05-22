@@ -61,7 +61,6 @@ class Draw {
   }
 
   startDrawing(event) {
-    console.log("mousedown");
     let color = ColorGenerator.random();
     this.rect = new Rect(this.drawZoneElt, color);
     this.rect.insert(event.clientX, event.clientY);
@@ -72,12 +71,10 @@ class Draw {
   }
 
   drawing(event) {
-    console.log("mousemove");
     this.rect.draw(event.clientX, event.clientY);
   }
 
   stopDrawing(event) {
-    console.log("mouseup");
     this.drawZoneElt.removeEventListener("mousemove", this.bindDrawing);
     this.drawZoneElt.removeEventListener("mouseup", this.bindStopDrawing);
   }
