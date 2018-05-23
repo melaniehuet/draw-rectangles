@@ -12,11 +12,14 @@ class ColorGenerator {
 }
 
 class Rect {
+  static get ROTATION_TIME() {
+    return 2000;
+  }
+
   constructor(draw, color) {
     this.draw = draw;
 
-    this.isRotated = null;
-    this.rotationTime = 2000;
+    this._isRotated = null;
 
     this.elt = document.createElement('div');
     this.elt.style.backgroundColor = color;
@@ -31,7 +34,7 @@ class Rect {
 
     this.draw.drawZoneElt.appendChild(this.elt);
 
-    this.elt.addEventListener("dblclick", this.rotate.bind(this));
+    this.elt.addEventListener("dblclick", this.startRotation.bind(this));
   }
 
   drawing(posX, posY) {
@@ -41,29 +44,29 @@ class Rect {
     this.elt.style.width = Math.abs(posX - this.originX) + "px";
   }
 
-  validate() {
-    if (!parseInt(this.elt.style.height) || !parseInt(this.elt.style.width)) {
-      this.elt.remove();
-    }
+  isValid() {
+    if (parseInt(this.elt.style.height) && parseInt(this.elt.style.width))
+      return true;
+
+    this.elt.remove();
+    return false;
   }
 
-  rotate() {
-    this.isRotated = true;
+  startRotation() {
+    this._isRotated = true;
     this.elt.style.transform = "rotate(360deg)";
-    this.elt.style.transition = this.rotationTime + "ms ease-in-out";
+    this.elt.style.transition = Rect.ROTATION_TIME + "ms ease-in-out";
 
-    var self = this;
-    self.delete = setTimeout(function() {
-      self.isRotated = false;
-      let isRotationOngoing = self.draw.getRectangles().find(r => r.isRotated);
-      if (isRotationOngoing) {
-        clearTimeout(self.delete);
-      } else {
-        self.draw.getRectangles().forEach(r => { if (r.isRotated === false) r.elt.remove(); });
-      }
-    }, this.rotationTime);
+    this.draw.removeRect(this);
   }
 
+  isRotating() {
+    return this._isRotated;
+  }
+
+  stopRotation() {
+      this._isRotated = false;
+  }
 }
 
 class Draw {
@@ -82,7 +85,6 @@ class Draw {
   startDrawing(event) {
     let color = ColorGenerator.random();
     this.currentRect = new Rect(this, color);
-    this._rects.push(this.currentRect);
     this.currentRect.insert(event.clientX, event.clientY);
 
     this.drawZoneElt.addEventListener("mousemove", this._bindDrawing);
@@ -94,14 +96,28 @@ class Draw {
   }
 
   stopDrawing(event) {
-    this.currentRect.validate();
+    if (this.currentRect.isValid()) {
+      this._rects.push(this.currentRect);
+    };
 
     this.drawZoneElt.removeEventListener("mousemove", this._bindDrawing);
     this.drawZoneElt.removeEventListener("mouseup", this._bindStopDrawing);
   }
 
-  getRectangles() {
-    return this._rects;
+  removeRect(rect) {
+    var self = this;
+    let removeRectTimeout = setTimeout(function() {
+        rect.stopRotation();
+        let rotationOngoing = self._rects.find(r => r.isRotating());
+        if (rotationOngoing) {
+          clearTimeout(removeRectTimeout);
+        } else {
+          self._rects.forEach(r => {
+            if (r.isRotating() === false)
+              r.elt.remove();
+          });
+        }
+    }, Rect.ROTATION_TIME);
   }
 }
 
