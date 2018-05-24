@@ -1,4 +1,4 @@
-(function() {
+(function(exports) {
   class ColorGenerator {
     constructor() {}
 
@@ -128,5 +128,9 @@
     }
   }
 
+  exports.ColorGenerator = ColorGenerator;
+  exports.Rect = Rect;
+  exports.Draw = Draw;
+
   new Draw("#js-draw-zone");
-})();
+})(window);
