@@ -67,6 +67,10 @@ class Rect {
   stopRotation() {
       this._isRotated = false;
   }
+
+  remove() {
+    this.elt.remove();
+  }
 }
 
 class Draw {
@@ -112,10 +116,14 @@ class Draw {
         if (rotationOngoing) {
           clearTimeout(removeRectTimeout);
         } else {
-          self._rects.forEach(r => {
-            if (r.isRotating() === false)
-              r.elt.remove();
+          self._rects = self._rects.filter((r, i) => {
+            if (r.isRotating() === false) {
+              r.remove();
+            } else {
+              return r;
+            }
           });
+
         }
     }, Rect.ROTATION_TIME);
   }
