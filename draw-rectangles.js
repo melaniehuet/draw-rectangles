@@ -17,7 +17,9 @@
     }
 
     constructor(options) {
+      options = options || {};
       this._color = options.color || ColorGenerator.random();
+      this._parentElt = options.parentElement || document.querySelector("body");
       this._endRotationCallback = options.endRotationCallback || this.remove;
       this._isRotated = null;
 
@@ -26,18 +28,18 @@
       this.elt.style.position = "absolute";
     }
 
-    insert(parentElement, originX, originY) {
+    insert(originX, originY) {
       this.originX = originX;
       this.originY = originY
       this.elt.style.top = originY + "px";
       this.elt.style.left = originX + "px";
 
-      parentElement.appendChild(this.elt);
+      this._parentElt.appendChild(this.elt);
 
-      this.elt.addEventListener("dblclick", this.startRotation.bind(this));
+      this.elt.addEventListener("dblclick", this.rotate.bind(this));
     }
 
-    drawing(posX, posY) {
+    setSize(posX, posY) {
       this.elt.style.top = Math.min(posY, this.originY) + "px";
       this.elt.style.left = Math.min(posX, this.originX) + "px";
       this.elt.style.height = Math.abs(posY - this.originY) + "px";
@@ -52,24 +54,20 @@
       return false;
     }
 
-    startRotation() {
+    rotate() {
       this._isRotated = true;
       this.elt.style.transform = "rotate(360deg)";
       this.elt.style.transition = Rect.ROTATION_TIME + "ms ease-in-out";
 
       let self = this;
       let rotationTimeout = setTimeout(function() {
-        self.stopRotation();
+        self._isRotated = false;
         self._endRotationCallback(rotationTimeout);
       }, Rect.ROTATION_TIME);
     }
 
     isRotating() {
       return this._isRotated;
-    }
-
-    stopRotation() {
-        this._isRotated = false;
     }
 
     remove() {
@@ -92,16 +90,17 @@
 
     startDrawing(event) {
       this.currentRect = new Rect({
+        parentElement: this.drawZoneElt,
         endRotationCallback: this.removeRects.bind(this)
       });
-      this.currentRect.insert(this.drawZoneElt, event.clientX, event.clientY);
+      this.currentRect.insert(event.clientX, event.clientY);
 
       this.drawZoneElt.addEventListener("mousemove", this._bindDrawing);
       this.drawZoneElt.addEventListener("mouseup", this._bindStopDrawing);
     }
 
     drawing(event) {
-      this.currentRect.drawing(event.clientX, event.clientY);
+      this.currentRect.setSize(event.clientX, event.clientY);
     }
 
     stopDrawing(event) {
