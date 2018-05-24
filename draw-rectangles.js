@@ -2,9 +2,8 @@ class ColorGenerator {
   constructor() {}
 
   static random() {
-    var chars = '0123456789ABCDEF';
-    var hex = '#';
-    for (var i = 0; i < 6; i++) {
+    let chars = '0123456789ABCDEF', hex = '#';
+    for (let i = 0; i < 6; i++) {
         hex += chars[Math.floor(Math.random() * 16)];
     }
     return hex;
@@ -16,23 +15,23 @@ class Rect {
     return 2000;
   }
 
-  constructor(draw, color) {
-    this.draw = draw;
-
+  constructor(options) {
+    this._color = options.color || ColorGenerator.random();
+    this._endRotationCallback = options.endRotationCallback || this.remove;
     this._isRotated = null;
 
     this.elt = document.createElement('div');
-    this.elt.style.backgroundColor = color;
+    this.elt.style.backgroundColor = this._color;
     this.elt.style.position = "absolute";
   }
 
-  insert(originX, originY) {
+  insert(parentElement, originX, originY) {
     this.originX = originX;
     this.originY = originY
     this.elt.style.top = originY + "px";
     this.elt.style.left = originX + "px";
 
-    this.draw.drawZoneElt.appendChild(this.elt);
+    parentElement.appendChild(this.elt);
 
     this.elt.addEventListener("dblclick", this.startRotation.bind(this));
   }
@@ -57,7 +56,11 @@ class Rect {
     this.elt.style.transform = "rotate(360deg)";
     this.elt.style.transition = Rect.ROTATION_TIME + "ms ease-in-out";
 
-    this.draw.removeRect(this);
+    let self = this;
+    let rotationTimeout = setTimeout(function() {
+      self.stopRotation();
+      self._endRotationCallback(rotationTimeout);
+    }, Rect.ROTATION_TIME);
   }
 
   isRotating() {
@@ -87,9 +90,10 @@ class Draw {
   }
 
   startDrawing(event) {
-    let color = ColorGenerator.random();
-    this.currentRect = new Rect(this, color);
-    this.currentRect.insert(event.clientX, event.clientY);
+    this.currentRect = new Rect({
+      endRotationCallback: this.removeRects.bind(this)
+    });
+    this.currentRect.insert(this.drawZoneElt, event.clientX, event.clientY);
 
     this.drawZoneElt.addEventListener("mousemove", this._bindDrawing);
     this.drawZoneElt.addEventListener("mouseup", this._bindStopDrawing);
@@ -108,26 +112,20 @@ class Draw {
     this.drawZoneElt.removeEventListener("mouseup", this._bindStopDrawing);
   }
 
-  removeRect(rect) {
-    var self = this;
-    let removeRectTimeout = setTimeout(function() {
-        rect.stopRotation();
-        let rotationOngoing = self._rects.find(r => r.isRotating());
-        if (rotationOngoing) {
-          clearTimeout(removeRectTimeout);
+  removeRects(rotationTimeout) {
+    let rotationOngoing = this._rects.find(r => r.isRotating());
+    if (rotationOngoing) {
+      clearTimeout(rotationTimeout);
+    } else {
+      this._rects = this._rects.filter((r, i) => {
+        if (r.isRotating() === false) {
+          r.remove();
         } else {
-          self._rects = self._rects.filter((r, i) => {
-            if (r.isRotating() === false) {
-              r.remove();
-            } else {
-              return r;
-            }
-          });
-
+          return r;
         }
-    }, Rect.ROTATION_TIME);
+      });
+    }
   }
 }
-
 
 new Draw("#js-draw-zone");
