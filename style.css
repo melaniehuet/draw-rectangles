@@ -16,7 +16,7 @@ body {
 .draw-zone {
   background: #FFF;
   box-shadow: 0px 10px 10px #AAA;
-  height: 210mm;
+  height: 297mm;
   margin: 30px auto;
-  width: 297mm;
+  width: 210mm;
 }
